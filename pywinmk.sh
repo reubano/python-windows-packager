@@ -4,8 +4,7 @@
 #
 # usage: pywinmk [options] <project>
 #
-# sudo port install wine winetricks
-# winetricks mono
+# sudo port install wine
 
 # source shflags
 . /usr/lib/shflags || return $?
@@ -61,7 +60,7 @@ if [ ${FLAGS_freeze} -eq ${FLAGS_TRUE} ]; then
 	exit 0
 fi
 
-# Create symbolic link to source directory so Windows can access it
+# Create symbolic link to source directory so Wine can access it
 ln -s ${FLAGS_dir} $C/${FLAGS_project}
 SOURCE_DIR="$C/${FLAGS_project}"
 
