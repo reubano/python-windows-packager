@@ -31,12 +31,11 @@ DIST_DIR='win-dist'
 WIN_DIR='windows'
 WINE_PREFIX="${FLAGS_dir}/$WIN_DIR"
 C="$WINE_PREFIX/drive_c"
-WINE_SCRIPTS="$C/Python27/scripts"
+WINE_SCRIPTS=`echo $C/Python*/scripts`
 EASY_INSTALL=$(winepath -w $WINE_SCRIPTS/easy_install.exe)
 PIP=$(winepath -w $WINE_SCRIPTS/pip.exe)
 PYINSTALLER=$(winepath -w $WINE_SCRIPTS/pyinstaller.exe)
 WINE_TARBALL='wine.tar.gz'
-PYTHON="wine c:/python27/python.exe"
 export "WINEPREFIX=$WINE_PREFIX"
 
 cd ${FLAGS_dir}
@@ -64,7 +63,7 @@ ln -s ${FLAGS_dir} $C/${FLAGS_project}
 SOURCE_DIR="$C/${FLAGS_project}"
 
 # Create hard link for missing msvcp90.dll
-ln $C/windows/system32/msvcp90.dll $C/Python27/msvcp90.dll
+ln $C/windows/system32/msvcp90.dll $C/Python*/msvcp90.dll
 
 if [ ${FLAGS_spec} -eq ${FLAGS_TRUE} ]; then
 	wine $PYINSTALLER -Fn ${FLAGS_project} --distpath=$DIST_DIR \
