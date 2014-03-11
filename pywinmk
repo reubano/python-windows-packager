@@ -28,20 +28,22 @@ eval set -- "${FLAGS_ARGV}"
 # main
 BUILD_DIR='win-build'
 DIST_DIR='win-dist'
-WIN_DIR='windows'
-WINE_PREFIX="${FLAGS_dir}/$WIN_DIR"
+WINE_PREFIX=`echo ~/.wine-pyinstaller`
+WINE_TARBALL="${FLAGS_dir}/wine.tar.gz"
 C="$WINE_PREFIX/drive_c"
 WINE_SCRIPTS=`echo $C/Python*/scripts`
 EASY_INSTALL=$(winepath -w $WINE_SCRIPTS/easy_install.exe)
 PIP=$(winepath -w $WINE_SCRIPTS/pip.exe)
 PYINSTALLER=$(winepath -w $WINE_SCRIPTS/pyinstaller.exe)
-WINE_TARBALL='wine.tar.gz'
+
 export "WINEPREFIX=$WINE_PREFIX"
 
 cd ${FLAGS_dir}
 
 if [ ${FLAGS_defrost} ]; then
 	rm -fr $WINE_PREFIX
+	mkdir $WINE_PREFIX
+	cd $WINE_PREFIX
 	tar -xzf ${FLAGS_defrost}
 elif [ ! -d $WINE_PREFIX ]; then
 	echo "Creating new wine environment"
@@ -53,8 +55,9 @@ elif [ ! -d $WINE_PREFIX ]; then
 fi
 
 if [ ${FLAGS_freeze} -eq ${FLAGS_TRUE} ]; then
-	echo "Freezing $WIN_DIR to $WINE_TARBALL"
-	tar -czf $WINE_TARBALL $WIN_DIR
+	echo "Freezing $WINE_PREFIX to $WINE_TARBALL"
+	cd $WINE_PREFIX
+	tar -czf $WINE_TARBALL .
 	exit 0
 fi
 
