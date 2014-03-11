@@ -15,8 +15,8 @@ PROJECT=${PWD##*/}
 DEFINE_string 'dir' `echo ~/Documents/Projects/$PROJECT` 'the project directory' 'd' || return $?
 DEFINE_string 'project' `echo $PROJECT` 'the project name' 'p' || return $?
 DEFINE_string 'script' `echo $PROJECT.py` 'the python script to package' 's' || return $?
-DEFINE_string 'wine-prefix' `echo ~/.wine-pyinstaller` 'the wine prefix to use' 'w' || return $?
-DEFINE_string 'defrost' '' 'to restore a previously frozen wine environment, supply the path to the tar.gz file (use -f option to freeze a wine environment' 'D' || return $?
+DEFINE_string 'prefix' `echo ~/.wine-pyinstaller` 'the wine prefix to use' 'w' || return $?
+DEFINE_string 'thaw' '' 'to restore a previously frozen wine environment, supply the path to the tar.gz file (use -f option to freeze a wine environment' 't' || return $?
 DEFINE_boolean 'freeze' 'false' 'freeze the wine environment (creates wine environment if necessary)' 'f' || return $?
 DEFINE_boolean 'spec' 'false' 'use project spec file' 'S' || return $?
 
@@ -29,23 +29,23 @@ BUILD_DIR='win-build'
 DIST_DIR='win-dist'
 INSTALLERS_DIR='win-installers'
 
+export "WINEPREFIX=${FLAGS_prefix}"
+
 WINE_TARBALL="${FLAGS_dir}/wine.tar.gz"
-C="${FLAGS_wine_prefix}/drive_c"
+C="${FLAGS_prefix}/drive_c"
 WINE_SCRIPTS=`echo $C/Python*/scripts`
 EASY_INSTALL=$(winepath -w $WINE_SCRIPTS/easy_install.exe)
 PIP=$(winepath -w $WINE_SCRIPTS/pip.exe)
 PYINSTALLER=$(winepath -w $WINE_SCRIPTS/pyinstaller.exe)
 
-export "WINEPREFIX=${FLAGS_wine_prefix}"
-
 cd ${FLAGS_dir}
 
-if [ ${FLAGS_defrost} ]; then
-	rm -fr ${FLAGS_wine_prefix}
-	mkdir ${FLAGS_wine_prefix}
-	cd ${FLAGS_wine_prefix}
-	tar -xzf ${FLAGS_defrost}
-elif [ ! -d ${FLAGS_wine_prefix} ]; then
+if [ ${FLAGS_thaw} ]; then
+	rm -fr ${FLAGS_prefix}
+	mkdir ${FLAGS_prefix}
+	cd ${FLAGS_prefix}
+	tar -xzf ${FLAGS_thaw}
+elif [ ! -d ${FLAGS_prefix} ]; then
 	echo "Creating new wine environment"
 	wine start $INSTALLERS_DIR/python*.msi
 	wine start $INSTALLERS_DIR/pywin32*.exe
@@ -55,8 +55,8 @@ elif [ ! -d ${FLAGS_wine_prefix} ]; then
 fi
 
 if [ ${FLAGS_freeze} -eq ${FLAGS_TRUE} ]; then
-	echo "Freezing ${FLAGS_wine_prefix} to $WINE_TARBALL"
-	cd ${FLAGS_wine_prefix}
+	echo "Freezing ${FLAGS_prefix} to $WINE_TARBALL"
+	cd ${FLAGS_prefix}
 	tar -czf $WINE_TARBALL .
 	exit 0
 fi
