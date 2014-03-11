@@ -16,7 +16,6 @@ PROJECT=${PWD##*/}
 DEFINE_string 'dir' `echo ~/Documents/Projects/$PROJECT` 'the project directory' 'd' || return $?
 DEFINE_string 'project' `echo $PROJECT` 'the project name' 'p' || return $?
 DEFINE_string 'script' `echo $PROJECT.py` 'the python script to package' 's' || return $?
-DEFINE_string 'installers' `echo ~/Documents/Projects/win-installers` 'the window installers directory' 'i' || return $?
 DEFINE_string 'defrost' '' 'path to frozen wine environment (use -f option to freeze a wine environment' 'D' || return $?
 DEFINE_boolean 'freeze' 'false' 'freeze current wine environment (creates wine environment if necessary)' 'f' || return $?
 DEFINE_boolean 'spec' 'false' 'use project spec file' 'S' || return $?
@@ -28,6 +27,7 @@ eval set -- "${FLAGS_ARGV}"
 # main
 BUILD_DIR='win-build'
 DIST_DIR='win-dist'
+INSTALLERS_DIR='win-installers'
 WINE_PREFIX=`echo ~/.wine-pyinstaller`
 WINE_TARBALL="${FLAGS_dir}/wine.tar.gz"
 C="$WINE_PREFIX/drive_c"
@@ -47,9 +47,9 @@ if [ ${FLAGS_defrost} ]; then
 	tar -xzf ${FLAGS_defrost}
 elif [ ! -d $WINE_PREFIX ]; then
 	echo "Creating new wine environment"
-	wine start ${FLAGS_installers}/python*.msi
-	wine start ${FLAGS_installers}/pywin32*.exe
-	wine ${FLAGS_installers}/setup*.exe
+	wine start $INSTALLERS_DIR/python*.msi
+	wine start $INSTALLERS_DIR/pywin32*.exe
+	wine $INSTALLERS_DIR/setup*.exe
 	wine $EASY_INSTALL pip
 	wine $PIP install PyInstaller
 fi
