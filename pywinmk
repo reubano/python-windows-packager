@@ -1,0 +1,78 @@
+#!/bin/sh -u
+# summary: Uses Pyinstaller and Wine to package Python scripts into standalone
+# Windows executables
+#
+# usage: pywinmk [options] <project>
+#
+# sudo port install wine winetricks
+# winetricks mono
+
+# source shflags
+. /usr/lib/shflags || return $?
+
+PROJECT=${PWD##*/}
+
+# configure shflags
+DEFINE_string 'dir' `echo ~/Documents/Projects/$PROJECT` 'the project directory' 'd' || return $?
+DEFINE_string 'project' `echo $PROJECT` 'the project name' 'p' || return $?
+DEFINE_string 'script' `echo $PROJECT.py` 'the python script to package' 's' || return $?
+DEFINE_string 'installers' `echo ~/Documents/Projects/win-installers` 'the window installers directory' 'i' || return $?
+DEFINE_string 'defrost' '' 'path to frozen wine environment (use -f option to freeze a wine environment' 'D' || return $?
+DEFINE_boolean 'freeze' 'false' 'freeze current wine environment (creates wine environment if necessary)' 'f' || return $?
+DEFINE_boolean 'spec' 'false' 'use project spec file' 'S' || return $?
+
+# parse the command-line
+FLAGS "$@" || exit 1
+eval set -- "${FLAGS_ARGV}"
+
+# main
+BUILD_DIR='win-build'
+DIST_DIR='win-dist'
+WIN_DIR='windows'
+WINE_PREFIX="${FLAGS_dir}/$WIN_DIR"
+C="$WINE_PREFIX/drive_c"
+WINE_SCRIPTS="$C/Python27/scripts"
+EASY_INSTALL=$(winepath -w $WINE_SCRIPTS/easy_install.exe)
+PIP=$(winepath -w $WINE_SCRIPTS/pip.exe)
+PYINSTALLER=$(winepath -w $WINE_SCRIPTS/pyinstaller.exe)
+WINE_TARBALL='wine.tar.gz'
+PYTHON="wine c:/python27/python.exe"
+export "WINEPREFIX=$WINE_PREFIX"
+
+cd ${FLAGS_dir}
+
+if [ ${FLAGS_defrost} ]; then
+	rm -fr $WINE_PREFIX
+	tar -xzf ${FLAGS_defrost}
+elif [ ! -d $WINE_PREFIX ]; then
+	echo "Creating new wine environment"
+	wine start ${FLAGS_installers}/python*.msi
+	wine start ${FLAGS_installers}/pywin32*.exe
+	wine ${FLAGS_installers}/setup*.exe
+	wine $EASY_INSTALL pip
+	wine $PIP install PyInstaller
+fi
+
+if [ ${FLAGS_freeze} -eq ${FLAGS_TRUE} ]; then
+	echo "Freezing $WIN_DIR to $WINE_TARBALL"
+	tar -czf $WINE_TARBALL $WIN_DIR
+	exit 0
+fi
+
+# Create symbolic link to source directory so Windows can access it
+ln -s ${FLAGS_dir} $C/${FLAGS_project}
+SOURCE_DIR="$C/${FLAGS_project}"
+
+# Create hard link for missing msvcp90.dll
+ln $C/windows/system32/msvcp90.dll $C/Python27/msvcp90.dll
+
+if [ ${FLAGS_spec} -eq ${FLAGS_TRUE} ]; then
+	wine $PYINSTALLER -Fn ${FLAGS_project} --distpath=$DIST_DIR \
+		--workpath=$BUILD_DIR $(winepath -w ${SOURCE_DIR}/${FLAGS_project}.spec)
+else
+	wine $PYINSTALLER -Fn ${FLAGS_project} --distpath=$DIST_DIR  \
+		--workpath=$BUILD_DIR $(winepath -w $SOURCE_DIR/${FLAGS_script})
+fi
+
+exit 0
+
