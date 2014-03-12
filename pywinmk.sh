@@ -22,6 +22,7 @@ DEFINE_boolean 'spec' 'false' 'use project pyinstaller spec file' 'S' || return 
 
 # parse the command-line
 FLAGS "$@" || exit 1
+[ ${FLAGS_help} -eq ${FLAGS_FALSE} ] || exit
 eval set -- "${FLAGS_ARGV}"
 
 # main
