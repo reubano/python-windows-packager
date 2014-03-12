@@ -38,13 +38,12 @@ EASY_INSTALL=$(winepath -w $WINE_SCRIPTS/easy_install.exe)
 PIP=$(winepath -w $WINE_SCRIPTS/pip.exe)
 PYINSTALLER=$(winepath -w $WINE_SCRIPTS/pyinstaller.exe)
 
-cd ${FLAGS_dir}
-
 if [ ${FLAGS_thaw} ]; then
+	echo 'Removing old prefix'
 	rm -fr ${FLAGS_prefix}
-	mkdir ${FLAGS_prefix}
-	cd ${FLAGS_prefix}
-	tar -xzf ${FLAGS_thaw}
+	echo "Restoring wine environment..."
+	tar -C ${FLAGS_prefix} -xzf ${FLAGS_thaw}
+	exit 0
 elif [ ! -d ${FLAGS_prefix} ]; then
 	echo "Creating new wine environment"
 	export "WINEPREFIX=${FLAGS_prefix}"
