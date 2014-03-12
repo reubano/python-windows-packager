@@ -15,10 +15,10 @@ PROJECT=${PWD##*/}
 DEFINE_string 'dir' `echo ~/Documents/Projects/$PROJECT` 'the project directory' 'd' || return $?
 DEFINE_string 'project' `echo $PROJECT` 'the project name' 'p' || return $?
 DEFINE_string 'script' `echo $PROJECT.py` 'the python script to package' 's' || return $?
-DEFINE_string 'prefix' `echo ~/.wine-pyinstaller` 'the wine prefix to use' 'w' || return $?
-DEFINE_string 'thaw' '' 'to restore a previously frozen wine environment, supply the path to the tar.gz file (use -f option to freeze a wine environment' 't' || return $?
-DEFINE_boolean 'freeze' 'false' 'freeze the wine environment (creates wine environment if necessary)' 'f' || return $?
-DEFINE_boolean 'spec' 'false' 'use project spec file' 'S' || return $?
+DEFINE_string 'prefix' `echo ~/.local/share/wineprefixes/pyinstaller` 'the wine prefix to use' 'w' || return $?
+DEFINE_string 'thaw' '' "restore from a previously frozen wine environment (by supplying the path to the tar.gz file) and exit. Use the -f option to freeze a wine environment" 't' || return $?
+DEFINE_boolean 'freeze' 'false' 'freeze the wine environment (creates wine environment if necessary) and exit' 'f' || return $?
+DEFINE_boolean 'spec' 'false' 'use project pyinstaller spec file' 'S' || return $?
 
 # parse the command-line
 FLAGS "$@" || exit 1
