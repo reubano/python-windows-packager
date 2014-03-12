@@ -27,9 +27,8 @@ eval set -- "${FLAGS_ARGV}"
 # main
 BUILD_DIR='win-build'
 DIST_DIR='win-dist'
-INSTALLERS_DIR='win-installers'
-
 export "WINEPREFIX=${FLAGS_prefix}"
+INSTALLERS_DIR="$(dirname $0)/win-installers"
 
 WINE_TARBALL="${FLAGS_dir}/wine.tar.gz"
 C="${FLAGS_prefix}/drive_c"
@@ -47,9 +46,11 @@ if [ ${FLAGS_thaw} ]; then
 	tar -xzf ${FLAGS_thaw}
 elif [ ! -d ${FLAGS_prefix} ]; then
 	echo "Creating new wine environment"
-	wine start $INSTALLERS_DIR/python*.msi
-	wine start $INSTALLERS_DIR/pywin32*.exe
-	wine $INSTALLERS_DIR/setup*.exe
+	export "WINEPREFIX=${FLAGS_prefix}"
+	cd $INSTALLERS_DIR
+	wine start python*.msi
+	wine pywin32*.exe
+	wine setup*.exe
 	wine $EASY_INSTALL pip
 	wine $PIP install PyInstaller
 fi
