@@ -33,7 +33,10 @@ INSTALLERS_DIR="$(dirname $0)/win-installers"
 
 WINE_TARBALL="${FLAGS_dir}/wine.tar.gz"
 C="${FLAGS_prefix}/drive_c"
-WINE_SCRIPTS=`echo $C/Python*/scripts`
+PYTHON_DIR=`echo $C/Python*`
+SYS32="$C/windows/system32"
+WINE_SCRIPTS=`echo $PYTHON_DIR/Scripts`
+
 EASY_INSTALL=$(winepath -w $WINE_SCRIPTS/easy_install.exe)
 PIP=$(winepath -w $WINE_SCRIPTS/pip.exe)
 PYINSTALLER=$(winepath -w $WINE_SCRIPTS/pyinstaller.exe)
@@ -63,11 +66,16 @@ if [ ${FLAGS_freeze} -eq ${FLAGS_TRUE} ]; then
 fi
 
 # Create symbolic link to source directory so Wine can access it
-ln -s ${FLAGS_dir} $C/${FLAGS_project}
-SOURCE_DIR="$C/${FLAGS_project}"
+if [ ! -d $C/${FLAGS_project} ]; then
+	echo "Symlinking ${FLAGS_dir} to $C/${FLAGS_project}/"
+	ln -s ${FLAGS_dir} $C/${FLAGS_project}/
+fi
 
 # Create hard link for missing msvcp90.dll
-ln $C/windows/system32/msvcp90.dll $C/Python*/msvcp90.dll
+if [ ! -f $PYTHON_DIR/msvcp90.dll ]; then
+	echo "Linking $SYS32/msvcp90.dll to $PYTHON_DIR/"
+	ln $SYS32/msvcp90.dll $PYTHON_DIR/
+fi
 
 if [ ${FLAGS_spec} -eq ${FLAGS_TRUE} ]; then
 	wine $PYINSTALLER -Fn ${FLAGS_project} --distpath=$DIST_DIR \
