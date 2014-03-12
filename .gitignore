@@ -1,2 +1,5 @@
-build_environment/wine.tar.gz
-build_environment/installers/*
+*dist/*
+*build/*
+*.tar.gz
+win-installers/*
+*.spec
