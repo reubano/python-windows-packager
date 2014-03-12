@@ -3,8 +3,6 @@
 # Windows executables
 #
 # usage: pywinmk [options] <project>
-#
-# sudo port install wine
 
 # source shflags
 . /usr/lib/shflags || return $?
@@ -18,6 +16,8 @@ DEFINE_string 'script' `echo $PROJECT.py` 'the python script to package' 's' || 
 DEFINE_string 'prefix' `echo ~/.local/share/wineprefixes/pyinstaller` 'the wine prefix to use' 'w' || return $?
 DEFINE_string 'thaw' '' "restore from a previously frozen wine environment (by supplying the path to the tar.gz file) and exit. Use the -f option to freeze a wine environment" 't' || return $?
 DEFINE_boolean 'freeze' 'false' 'freeze the wine environment (creates wine environment if necessary) and exit' 'f' || return $?
+DEFINE_boolean 'onefile' 'false' 'use pyinstaller in one-file mode' 'F' || return $?
+DEFINE_boolean 'windowed' 'false' 'use pyinstaller in windowed/no-console mode' 'W' || return $?
 DEFINE_boolean 'spec' 'false' 'use project pyinstaller spec file' 'S' || return $?
 
 # parse the command-line
@@ -28,14 +28,17 @@ eval set -- "${FLAGS_ARGV}"
 # main
 BUILD_DIR='win-build'
 DIST_DIR='win-dist'
-export "WINEPREFIX=${FLAGS_prefix}"
 INSTALLERS_DIR="$(dirname $0)/win-installers"
+ENV_REG='path.reg'
+PIP_CONFIG='distutils.cfg'
 
 WINE_TARBALL="${FLAGS_dir}/wine.tar.gz"
 C="${FLAGS_prefix}/drive_c"
+SOURCE_DIR="$C/${FLAGS_project}"
 PYTHON_DIR=`echo $C/Python*`
 SYS32="$C/windows/system32"
 WINE_SCRIPTS=`echo $PYTHON_DIR/Scripts`
+DISTUTILS="$PYTHON_DIR/distutils"
 
 EASY_INSTALL=$(winepath -w $WINE_SCRIPTS/easy_install.exe)
 PIP=$(winepath -w $WINE_SCRIPTS/pip.exe)
@@ -78,12 +81,46 @@ if [ ! -f $PYTHON_DIR/msvcp90.dll ]; then
 fi
 
 if [ ${FLAGS_spec} -eq ${FLAGS_TRUE} ]; then
-	wine $PYINSTALLER -Fn ${FLAGS_project} --distpath=$DIST_DIR \
-		--workpath=$BUILD_DIR $(winepath -w ${SOURCE_DIR}/${FLAGS_project}.spec)
+	SOURCE_FILE=${FLAGS_project}.spec
 else
-	wine $PYINSTALLER -Fn ${FLAGS_project} --distpath=$DIST_DIR  \
-		--workpath=$BUILD_DIR $(winepath -w $SOURCE_DIR/${FLAGS_script})
+	SOURCE_FILE=${FLAGS_script}
 fi
+
+if [ ${FLAGS_onefile} -eq ${FLAGS_TRUE} ]; then
+	O='-F'
+else
+	O=''
+fi
+
+if [ ${FLAGS_windowed} -eq ${FLAGS_TRUE} ]; then
+	O="$O -W"
+else
+	O=$O
+fi
+
+if [ ! -f $DISTUTILS/$PIP_CONFIG ]; then
+	echo "Copying $PIP_CONFIG to $DISTUTILS/"
+	cd $INSTALLERS_DIR
+	cp $PIP_CONFIG $DISTUTILS/
+fi
+
+export "WINEPREFIX=${FLAGS_prefix}"
+wine regedit $ENV_REG
+
+if [ -f $SOURCE_DIR/requirements.txt ]; then
+	if cat $SOURCE_DIR/requirements.txt | grep lxml; then
+		cd $INSTALLERS_DIR
+		wine $EASY_INSTALL lxml‑3.3.3.win32‑py2.7.exe
+	fi
+
+	cd $SOURCE_DIR
+	cat requirements.txt | grep -v lxml > requirements_nolxml.txt
+	wine $PIP install -r requirements_nolxml.txt
+	rm requirements_nolxml.txt
+fi
+
+wine $PYINSTALLER $O -n ${FLAGS_project} --distpath=$DIST_DIR  \
+	--workpath=$BUILD_DIR $(winepath -w $SOURCE_DIR/${SOURCE_FILE})
 
 exit 0
 
