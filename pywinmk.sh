@@ -33,6 +33,7 @@ BUILD_DIR="build\pyi.win32"
 DIST_DIR="dist\win32"
 
 INSTALLERS_DIR="$THIS_DIR/installers"
+CONFIGS_DIR="$THIS_DIR/configs"
 ENV_REG='path.reg'
 PIP_CONFIG='distutils.cfg'
 
@@ -102,7 +103,7 @@ else
 	O=$O
 fi
 
-cd $INSTALLERS_DIR
+cd $CONFIGS_DIR
 wine regedit $ENV_REG
 
 if [ ! -f $DISTUTILS/$PIP_CONFIG ]; then
