@@ -28,7 +28,8 @@ eval set -- "${FLAGS_ARGV}"
 # main
 BUILD_DIR='win-build'
 DIST_DIR='win-dist'
-INSTALLERS_DIR="$(dirname $0)/win-installers"
+THIS_DIR="$( cd "$( dirname "$0" )" && pwd )"
+INSTALLERS_DIR="$THIS_DIR/installers"
 ENV_REG='path.reg'
 PIP_CONFIG='distutils.cfg'
 
