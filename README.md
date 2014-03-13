@@ -10,7 +10,7 @@ executables, all from your Linux or Mac box.
 
 ### Download required files
 
-	cd win-installers
+	cd /path/to/pywinmk/installers
 	wget "https://github.com/reubano/shFlags/blob/master/src/shflags"
 	wget "http://www.python.org/ftp/python/2.7.6/python-2.7.3.msi"
 	wget "http://downloads.sourceforge.net/project/pywin32/pywin32/Build%20218/pywin32-218.win32-py2.7.exe"
