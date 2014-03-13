@@ -10,8 +10,8 @@
 PROJECT=${PWD##*/}
 
 # configure shflags
-DEFINE_string 'dir' `echo ~/Documents/Projects/$PROJECT` 'the project directory' 'd' || return $?
-DEFINE_string 'project' `echo $PROJECT` 'the project name' 'p' || return $?
+DEFINE_string 'dir' `echo ~/Documents/Projects/$PROJECT` 'the project  directory' 'd' || return $?
+DEFINE_string 'name' `echo $PROJECT` 'the project name' 'n' || return $?
 DEFINE_string 'script' `echo $PROJECT.py` 'the python script to package' 's' || return $?
 DEFINE_string 'prefix' `echo ~/.local/share/wineprefixes/pyinstaller` 'the wine prefix to use' 'w' || return $?
 DEFINE_string 'thaw' '' "restore from a previously frozen wine environment (by supplying the path to the tar.gz file) and exit. Use the -f option to freeze a wine environment" 't' || return $?
@@ -28,23 +28,29 @@ eval set -- "${FLAGS_ARGV}"
 # main
 export "WINEPREFIX=${FLAGS_prefix}"
 
-THIS_DIR="$( cd "$( dirname "$0" )" && pwd )"
+# Pyinstaller dirs
 BUILD_DIR="build\pyi.win32"
 DIST_DIR="dist\win32"
 
+# pywinmk dirs
+THIS_DIR="$( cd "$( dirname "$0" )" && pwd )"
 INSTALLERS_DIR="$THIS_DIR/installers"
 CONFIGS_DIR="$THIS_DIR/configs"
+
+# Config files
 ENV_REG='path.reg'
 PIP_CONFIG='distutils.cfg'
 
+# Wine dirs
 WINE_TARBALL="${FLAGS_dir}/wine.tar.gz"
 C="${FLAGS_prefix}/drive_c"
-SOURCE_DIR="$C/${FLAGS_project}"
+SOURCE_DIR="$C/$(basename ${FLAGS_dir})"
 PYTHON_DIR="$C/Python27"
 SYS32="$C/windows/system32"
 WINE_SCRIPTS="$PYTHON_DIR/Scripts"
 DISTUTILS="$PYTHON_DIR/Lib/distutils"
 
+# Executables 
 PYTHON=$(winepath -w $PYTHON_DIR/python.exe)
 EASY_INSTALL=$(winepath -w $WINE_SCRIPTS/easy_install.exe)
 PIP=$(winepath -w $WINE_SCRIPTS/pip.exe)
@@ -74,9 +80,9 @@ if [ ${FLAGS_freeze} -eq ${FLAGS_TRUE} ]; then
 fi
 
 # Create symbolic link to source directory so Wine can access it
-if [ ! -d $C/${FLAGS_project} ]; then
-	echo "Symlinking ${FLAGS_dir} to $C/${FLAGS_project}/"
-	ln -s ${FLAGS_dir} $C/${FLAGS_project}/
+if [ ! -d $SOURCE_DIR ]; then
+	echo "Symlinking ${FLAGS_dir} to $SOURCE_DIR/"
+	ln -s ${FLAGS_dir} $SOURCE_DIR/
 fi
 
 # Create hard link for missing msvcp90.dll
@@ -128,7 +134,7 @@ if [ -f setup.py ]; then
 	wine $PYTHON setup.py install
 fi
 
-wine $PYINSTALLER $O -n ${FLAGS_project} --distpath=$DIST_DIR  \
+wine $PYINSTALLER $O -n ${FLAGS_name} --distpath=$DIST_DIR  \
 	--workpath=$BUILD_DIR ${SOURCE_FILE}
 
 exit 0
