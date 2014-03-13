@@ -1,28 +1,45 @@
 # Python Packager
 ## Overview
 
-Develop Python on Linux, deploy on Windows.
+Develop Python on Linux or Mac, deploy on Windows.
 
-Uses Pyinstaller and Wine to "freeze" Python programs to a standalone Windows
-executable, all from your Linux box.
+Uses Pyinstaller and Wine to package Python programs to standalone Windows
+executables, all from your Linux or Mac box.
 
 ## Quick start
 
-To quickly build your Wine environment, then create a standalone EXE,
-run the following commands:
+### Download required files
 
-    $ wget "http://www.python.org/ftp/python/2.7.3/python-2.7.3.msi" 
-    $ wget "http://downloads.sourceforge.net/project/pywin32/pywin32/Build%20218/pywin32-218.win32-py2.7.exe?r=http%3A%2F%2Fsourceforge.net%2Fprojects%2Fpywin32%2Ffiles%2Fpywin32%2FBuild%2520218%2F&ts=1359740579&use_mirror=netcologne"
+	cd win-installers
+	wget "https://github.com/reubano/shFlags/blob/master/src/shflags"
+	wget "http://www.python.org/ftp/python/2.7.6/python-2.7.3.msi"
+	wget "http://downloads.sourceforge.net/project/pywin32/pywin32/Build%20218/pywin32-218.win32-py2.7.exe"
+	wget "https://pypi.python.org/packages/2.7/s/setuptools/setuptools-0.6c11.win32-py2.7.exe"
+	wget "http://www.lfd.uci.edu/~gohlke/pythonlibs/bmsicnqj/lxml-3.3.3.win32-py2.7.exe"
 
-    $ build_environment/create.sh
-    $ export WINEPREFIX=/tmp/path-outputted-from-create
-    $ wine start python-2.7.3.msi
-    $ wine pywin32-218.win32-py2.7.exe
-    $ build_environment/freeze.sh
-    $ ./package sample-application/src/main.py MySampleProgram
+### Install dependencies
 
-This will create a Wine environment in a tarball at 
-./build_environment/wine.tar.gz.
+	sudo mv shflags /usr/lib/shflags
+	
+	# Mac
+	sudo port install wine winetricks samba3
+
+	# Linux
+	apt-get wine winetricks samba3
+	
+### Setup Wine environment
+	
+	export "WINEPREFIX=~/.local/share/wineprefixes/pyinstaller"
+	winetricks --no-isolate mingw
+	
+	# winetricks with display error message so cd to bin and run again
+	cd ~/.local/share/wineprefixes/pyinstaller/drive_c/MinGW/bin
+	winetricks --no-isolate mingw
+
+### Create your standalone EXE
+
+	cd /path/to/pywinmk/sample-app
+	../pywinmk.sh -s main.py -n MySampleProject
 
 ## Modifying the Python Windows environment
 

@@ -1,0 +1,3 @@
+[HKEY_CURRENT_USER\Environment]
+"Path"="C:\\windows\\system32;C:\\MinGW\\bin"
+"PIP_DOWNLOAD_CACHE"="C:\\Public\\Documents\\.pip_download_cache"
