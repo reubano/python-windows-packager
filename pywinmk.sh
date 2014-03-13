@@ -18,7 +18,7 @@ DEFINE_string 'thaw' '' "restore from a previously frozen wine environment (by s
 DEFINE_boolean 'freeze' 'false' 'freeze the wine environment (creates wine environment if necessary) and exit' 'f' || return $?
 DEFINE_boolean 'onefile' 'false' 'use pyinstaller in one-file mode' 'F' || return $?
 DEFINE_boolean 'windowed' 'false' 'use pyinstaller in windowed/no-console mode' 'W' || return $?
-DEFINE_boolean 'spec' 'false' 'use project pyinstaller spec file' 'S' || return $?
+DEFINE_boolean 'spec' 'false' "run pyinstaller with spec file ($PROJECT.spec)" 'S' || return $?
 
 # parse the command-line
 FLAGS "$@" || exit 1
