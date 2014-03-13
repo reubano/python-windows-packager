@@ -26,9 +26,12 @@ FLAGS "$@" || exit 1
 eval set -- "${FLAGS_ARGV}"
 
 # main
-BUILD_DIR='win-build'
-DIST_DIR='win-dist'
+export "WINEPREFIX=${FLAGS_prefix}"
+
 THIS_DIR="$( cd "$( dirname "$0" )" && pwd )"
+BUILD_DIR="build\pyi.win32"
+DIST_DIR="dist\win32"
+
 INSTALLERS_DIR="$THIS_DIR/installers"
 ENV_REG='path.reg'
 PIP_CONFIG='distutils.cfg'
@@ -36,11 +39,12 @@ PIP_CONFIG='distutils.cfg'
 WINE_TARBALL="${FLAGS_dir}/wine.tar.gz"
 C="${FLAGS_prefix}/drive_c"
 SOURCE_DIR="$C/${FLAGS_project}"
-PYTHON_DIR=`echo $C/Python*`
+PYTHON_DIR="$C/Python27"
 SYS32="$C/windows/system32"
-WINE_SCRIPTS=`echo $PYTHON_DIR/Scripts`
-DISTUTILS="$PYTHON_DIR/distutils"
+WINE_SCRIPTS="$PYTHON_DIR/Scripts"
+DISTUTILS="$PYTHON_DIR/Lib/distutils"
 
+PYTHON=$(winepath -w $PYTHON_DIR/python.exe)
 EASY_INSTALL=$(winepath -w $WINE_SCRIPTS/easy_install.exe)
 PIP=$(winepath -w $WINE_SCRIPTS/pip.exe)
 PYINSTALLER=$(winepath -w $WINE_SCRIPTS/pyinstaller.exe)
@@ -53,7 +57,6 @@ if [ ${FLAGS_thaw} ]; then
 	exit 0
 elif [ ! -d ${FLAGS_prefix} ]; then
 	echo "Creating new wine environment"
-	export "WINEPREFIX=${FLAGS_prefix}"
 	cd $INSTALLERS_DIR
 	wine start python*.msi
 	wine pywin32*.exe
@@ -99,29 +102,32 @@ else
 	O=$O
 fi
 
+cd $INSTALLERS_DIR
+wine regedit $ENV_REG
+
 if [ ! -f $DISTUTILS/$PIP_CONFIG ]; then
 	echo "Copying $PIP_CONFIG to $DISTUTILS/"
-	cd $INSTALLERS_DIR
 	cp $PIP_CONFIG $DISTUTILS/
 fi
 
-export "WINEPREFIX=${FLAGS_prefix}"
-wine regedit $ENV_REG
-
-if [ -f $SOURCE_DIR/requirements.txt ]; then
-	if cat $SOURCE_DIR/requirements.txt | grep lxml; then
+cd $SOURCE_DIR
+if [ -f requirements.txt ]; then
+	if cat requirements.txt | grep lxml 1> /dev/null; then
 		cd $INSTALLERS_DIR
 		wine $EASY_INSTALL lxml‑3.3.3.win32‑py2.7.exe
+		cd $SOURCE_DIR
 	fi
 
-	cd $SOURCE_DIR
 	cat requirements.txt | grep -v lxml > requirements_nolxml.txt
 	wine $PIP install -r requirements_nolxml.txt
 	rm requirements_nolxml.txt
 fi
 
+if [ -f setup.py ]; then
+	wine $PYTHON setup.py install
+fi
+
 wine $PYINSTALLER $O -n ${FLAGS_project} --distpath=$DIST_DIR  \
-	--workpath=$BUILD_DIR $(winepath -w $SOURCE_DIR/${SOURCE_FILE})
+	--workpath=$BUILD_DIR ${SOURCE_FILE}
 
 exit 0
-
